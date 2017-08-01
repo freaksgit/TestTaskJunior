@@ -1,9 +1,13 @@
 package com.stoliarchuk.vasyl.testtaskjunior;
 
 import android.app.IntentService;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
 import android.util.Log;
+
+import com.stoliarchuk.vasyl.testtaskjunior.database.RssContract;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,9 +23,6 @@ import java.util.List;
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
- * <p>
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
  */
 public class RssDownloaderService extends IntentService {
 
@@ -40,7 +42,6 @@ public class RssDownloaderService extends IntentService {
      *
      * @see IntentService
      */
-    // TODO: Customize helper method
     public static void startDownloadRss(Context context, URL link) {
         Intent intent = new Intent(context, RssDownloaderService.class);
         intent.setAction(ACTION_DOWNLOAD_RSS);
@@ -60,57 +61,33 @@ public class RssDownloaderService extends IntentService {
     }
 
     /**
-     * Handle action Foo in the provided background thread with the provided
+     * Handle action in the provided background thread with the provided
      * parameters.
      */
     private void downloadRss(URL url) {
-
+        ArrayList<RssItem> items = null;
         if (url == null) {
             return;
-        }else{
-            List<RssItem> items = RssItem.getRssItems(url);
-            Log.v(TAG, Arrays.toString(items.toArray()));
-        }
-/*
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-        String responseJson = null;
-
-        try {
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-
-            InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
-            if (inputStream == null) {
-                return;
-            }
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line + "\n");
-            }
-            if (buffer.length() == 0) {
-                Log.e(TAG, "Empty response");
-                return;
-            }
-            responseJson = buffer.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    Log.e(TAG, "Error closing stream", e);
-                }
+        }else {
+            items = RssItem.getRssItems(url);
+            if (null != items && items.size() > 0){
+                pushDataIntoDb(items);
             }
         }
-        sendBroadcast(new Intent(MainActivity.Receiver.INTENT_FILTER).putExtra(Intent.EXTRA_TEXT, responseJson));*/
+        sendBroadcast(new Intent(MainActivity.Receiver.INTENT_FILTER).putParcelableArrayListExtra(MainActivity.Receiver.EXTRA_ITEMS, items));
+    }
+
+    private void pushDataIntoDb(ArrayList<RssItem> items) {
+        ContentValues values = new ContentValues();
+        ContentResolver contentResolver = getContentResolver();
+        for (RssItem item : items) {
+            values.clear();
+            values.put(RssContract.COLUMN_TITLE, item.getTitle());
+            values.put(RssContract.COLUMN_CATEGORY, item.getCategory());
+            values.put(RssContract.COLUMN_DESCRIPTION, item.getDescription());
+            values.put(RssContract.COLUMN_LINK, item.getLink());
+            values.put(RssContract.COLUMN_IMAGE_LINK, item.getImageLink());
+            contentResolver.insert(RssContract.BASE_CONTENT_URI, values);
+        }
     }
 }

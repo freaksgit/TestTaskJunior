@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">TestTaskJunior</string>
     <string name="default_link">http://feeds.abcnews.com/abcnews/topstories</string>
+    <string name="content_authority">com.stoliarchuk.vasyl.testtaskjunior</string>
 </resources>

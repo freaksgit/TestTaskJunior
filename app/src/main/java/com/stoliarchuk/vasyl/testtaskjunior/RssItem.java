@@ -1,31 +1,25 @@
 package com.stoliarchuk.vasyl.testtaskjunior;
 
-import android.util.Log;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Created by freak on 01.08.2017.
  */
 
-public class RssItem {
+public class RssItem implements Parcelable {
     private final static String TAG = RssDownloaderService.class.getSimpleName();
 
     private String title;
@@ -41,6 +35,7 @@ public class RssItem {
         this.link = link;
         this.imageLink = imageLink;
     }
+
 
     public String getTitle() {
         return title;
@@ -75,8 +70,8 @@ public class RssItem {
         return result;
     }
 
-    public static List<RssItem> getRssItems(URL url) {
-        List<RssItem> rssItems = new ArrayList<RssItem>();
+    public static ArrayList<RssItem> getRssItems(URL url) {
+        ArrayList<RssItem> rssItems = new ArrayList<RssItem>();
 
         HttpURLConnection urlConnection = null;
         String responseJson = null;
@@ -128,10 +123,45 @@ public class RssItem {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-        if (urlConnection != null) {
-            urlConnection.disconnect();
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
         }
+        return rssItems;
     }
-    return rssItems;
+
+
+    protected RssItem(Parcel in) {
+        title = in.readString();
+        category = in.readString();
+        description = in.readString();
+        link = in.readString();
+        imageLink = in.readString();
+    }
+
+    public static final Creator<RssItem> CREATOR = new Creator<RssItem>() {
+        @Override
+        public RssItem createFromParcel(Parcel in) {
+            return new RssItem(in);
+        }
+
+        @Override
+        public RssItem[] newArray(int size) {
+            return new RssItem[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeString(category);
+        dest.writeString(description);
+        dest.writeString(link);
+        dest.writeString(imageLink);
     }
 }
