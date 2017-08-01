@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -64,8 +67,11 @@ public class RssDownloaderService extends IntentService {
 
         if (url == null) {
             return;
+        }else{
+            List<RssItem> items = RssItem.getRssItems(url);
+            Log.v(TAG, Arrays.toString(items.toArray()));
         }
-
+/*
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         String responseJson = null;
@@ -105,6 +111,6 @@ public class RssDownloaderService extends IntentService {
                 }
             }
         }
-        sendBroadcast(new Intent(MainActivity.Receiver.INTENT_FILTER).putExtra(Intent.EXTRA_TEXT, responseJson));
+        sendBroadcast(new Intent(MainActivity.Receiver.INTENT_FILTER).putExtra(Intent.EXTRA_TEXT, responseJson));*/
     }
 }
