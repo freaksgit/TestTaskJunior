@@ -1,0 +1,23 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.stoliarchuk.vasyl.testtaskjunior.fragments.DetailFragment">
+
+    <ProgressBar
+        android:id="@+id/fragment_detail_progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:visibility="gone"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:background="?attr/colorPrimary"/>
+
+    <WebView
+        android:id="@+id/fragment_detail_web_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@id/fragment_detail_progress_bar" />
+
+</RelativeLayout>

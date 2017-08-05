@@ -28,7 +28,8 @@ public class RssDbHelper extends SQLiteOpenHelper {
                 RssContract.COLUMN_CATEGORY + " TEXT NOT NULL, " +
                 RssContract.COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
                 RssContract.COLUMN_LINK + " TEXT NOT NULL," +
-                RssContract.COLUMN_IMAGE_LINK + " TEXT NOT NULL );";
+                RssContract.COLUMN_IMAGE_LINK + " TEXT NOT NULL, " +
+        "UNIQUE(" + RssContract.COLUMN_TITLE + ") ON CONFLICT IGNORE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_RSS_TABLE);
     }

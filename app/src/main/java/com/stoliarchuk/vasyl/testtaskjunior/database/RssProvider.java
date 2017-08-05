@@ -81,7 +81,8 @@ public class RssProvider extends ContentProvider{
                 if ( _id > 0 )
                     returnUri = RssContract.buildRssUri(_id);
                 else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                    returnUri = null;
+                    //throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
             default:

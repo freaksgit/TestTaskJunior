@@ -5,6 +5,8 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.stoliarchuk.vasyl.testtaskjunior.database.RssContract;
@@ -17,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,12 +28,13 @@ import java.util.List;
  * a service on a separate handler thread.
  */
 public class RssDownloaderService extends IntentService {
-
     private final static String TAG = RssDownloaderService.class.getSimpleName();
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String ACTION_DOWNLOAD_RSS = "com.stoliarchuk.vasyl.testtaskjunior.action.RSS";
 
     private static final String EXTRA_LINK = "com.stoliarchuk.vasyl.testtaskjunior.extra.LINK";
+
+    private Context mContext;
 
     public RssDownloaderService() {
         super("RssDownloaderService");
@@ -68,13 +72,13 @@ public class RssDownloaderService extends IntentService {
         ArrayList<RssItem> items = null;
         if (url == null) {
             return;
-        }else {
+        } else {
             items = RssItem.getRssItems(url);
-            if (null != items && items.size() > 0){
+            if (null != items && items.size() > 0) {
                 pushDataIntoDb(items);
             }
         }
-        sendBroadcast(new Intent(MainActivity.Receiver.INTENT_FILTER).putParcelableArrayListExtra(MainActivity.Receiver.EXTRA_ITEMS, items));
+        //sendBroadcast(new Intent(MainActivity.Receiver.INTENT_FILTER).putParcelableArrayListExtra(MainActivity.Receiver.EXTRA_ITEMS, items));
     }
 
     private void pushDataIntoDb(ArrayList<RssItem> items) {
@@ -88,6 +92,14 @@ public class RssDownloaderService extends IntentService {
             values.put(RssContract.COLUMN_LINK, item.getLink());
             values.put(RssContract.COLUMN_IMAGE_LINK, item.getImageLink());
             contentResolver.insert(RssContract.BASE_CONTENT_URI, values);
+
+            Calendar calendar = Calendar.getInstance();
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+            int currentDayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
+            prefs.edit().putInt("day", currentDayOfYear).commit();
+
+            stopSelf();
         }
     }
 }

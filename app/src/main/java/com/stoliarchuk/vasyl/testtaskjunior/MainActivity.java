@@ -1,65 +1,101 @@
 package com.stoliarchuk.vasyl.testtaskjunior;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.widget.TextView;
+
+import com.stoliarchuk.vasyl.testtaskjunior.fragments.DetailFragment;
+import com.stoliarchuk.vasyl.testtaskjunior.fragments.RssListFragment;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Calendar;
 
-public class MainActivity extends AppCompatActivity {
-    private ArrayList<RssItem> rssItems = new ArrayList<>();
-    private TextView tv, linkTv;
-    private BroadcastReceiver receiver = new Receiver();
-    private IntentFilter intentFilter = new IntentFilter(Receiver.INTENT_FILTER);
-    @Override
+public class MainActivity extends AppCompatActivity implements RssListFragment.OnRssItemClickListener{
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
+
+    Toolbar mToolbar;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        tv = (TextView) findViewById(R.id.tv);
-        linkTv = (TextView) findViewById(R.id.link_tv);
-        startRssDownloaderService();
+        setContentView(R.layout.activity_masterdetail);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+        startRssDownloader();
+
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
+        if (null == fragment) {
+            fragment = createFragment();
+            fm.beginTransaction()
+                    .add(R.id.fragment_container, fragment)
+                    .commit();
+        }
     }
 
-    private void startRssDownloaderService() {
-        URL url = null;
-        try {
-            url = new URL(linkTv.getText().toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+    private Fragment createFragment() {
+        return new RssListFragment();
+    }
+
+
+    public void startRssDownloader() {
+        if (isNeedToGetFreshData()) {
+            URL url = null;
+            try {
+                url = new URL("http://feeds.abcnews.com/abcnews/topstories");
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            if (null != url) {
+                RssDownloaderService.startDownloadRss(this, url);
+            }
         }
-        if (null != url) {
-            RssDownloaderService.startDownloadRss(this, url);
-        }
+    }
+
+    public boolean isNeedToGetFreshData() {
+        Calendar calendar = Calendar.getInstance();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        int currentDayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
+        Log.v(LOG_TAG, "Current day of year: " + currentDayOfYear);
+
+        int savedDayOfYear = prefs.getInt("day", -1);
+        Log.v(LOG_TAG, "Saved day of year: " + savedDayOfYear);
+
+            if (currentDayOfYear > savedDayOfYear) {
+                return true;
+            } else {
+                return false;
+            }
+
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        this.registerReceiver(receiver, intentFilter);
-    }
+    public void onItemClicked(String url) {
+        if (findViewById(R.id.detail_fragment_container) == null){
+            startActivity(DetailActivity.createIntent(this, url));
+        }else{
+            Fragment detailFragment = DetailFragment.newInstance(url);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_fragment_container, detailFragment)
+                    .commit();
+        }
+        }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        this.unregisterReceiver(receiver);
-    }
-
-    class Receiver extends BroadcastReceiver{
-        public static final String INTENT_FILTER = "com.stoliarchuk.vasyl.testtaskjunior.INTENT_FILTER";
-        public static final String EXTRA_ITEMS = "com.stoliarchuk.vasyl.testtaskjunior.ACTION_ITEMS";
-        public void onReceive(Context context, Intent intent) {
-            rssItems = intent.getParcelableArrayListExtra(EXTRA_ITEMS);
-            Log.v("TAG", Arrays.toString(rssItems.toArray()));
-
+    public void onBackPressed() {
+        if (findViewById(R.id.detail_fragment_container) == null){
+            super.onBackPressed();
+        }else{
+            DetailFragment detailFragment = (DetailFragment) getSupportFragmentManager().findFragmentById(R.id.detail_fragment_container);
+            if (detailFragment != null){
+                detailFragment.onBackPressed();
+            }
         }
     }
-
 }

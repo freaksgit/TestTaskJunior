@@ -97,7 +97,7 @@ public class RssItem implements Parcelable {
 
                         Element entry = (Element) nodeList.item(i);
                         NodeList imagesLinks = entry.getElementsByTagName("media:thumbnail");
-                        Element _imageLinkE = (Element) imagesLinks.item(1);
+                        Element _imageLinkE = (Element) imagesLinks.item(5);
 
                         Element _titleE = (Element) entry.getElementsByTagName("title").item(0);
                         Element _linkE = (Element) entry.getElementsByTagName("link").item(0);
